@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 
 const ShaderBackground = () => {
-  const canvasRef = useRef(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   // Vertex shader source code
   const vsSource = `
@@ -16,6 +16,7 @@ const ShaderBackground = () => {
     precision highp float;
     uniform vec2 iResolution;
     uniform float iTime;
+    uniform float iScale;
 
     const float overallSpeed = 0.2;
     const float gridSmoothWidth = 0.015;
@@ -25,7 +26,6 @@ const ShaderBackground = () => {
     const float majorLineFrequency = 5.0;
     const float minorLineFrequency = 1.0;
     const vec4 gridColor = vec4(0.5);
-    const float scale = 5.0;
     const vec4 lineColor = vec4(0.4, 0.2, 0.8, 1.0);
     const float minLineWidth = 0.01;
     const float maxLineWidth = 0.2;
@@ -68,7 +68,7 @@ const ShaderBackground = () => {
       vec2 fragCoord = gl_FragCoord.xy;
       vec4 fragColor;
       vec2 uv = fragCoord.xy / iResolution.xy;
-      vec2 space = (fragCoord - iResolution.xy / 2.0) / iResolution.x * 2.0 * scale;
+      vec2 space = (fragCoord - iResolution.xy / 2.0) / iResolution.x * 2.0 * iScale;
 
       float horizontalFade = cos(uv.x * 6.28) * 0.5 + 0.5;
       float verticalFade = 1.0 - (cos(uv.y * 6.28) * 0.5 + 0.5);
@@ -108,8 +108,9 @@ const ShaderBackground = () => {
   `;
 
   // Helper function to compile shader
-  const loadShader = (gl, type, source) => {
+  const loadShader = (gl: WebGLRenderingContext, type: number, source: string): WebGLShader | null => {
     const shader = gl.createShader(type);
+    if (!shader) return null;
     gl.shaderSource(shader, source);
     gl.compileShader(shader);
 
@@ -123,11 +124,13 @@ const ShaderBackground = () => {
   };
 
   // Initialize shader program
-  const initShaderProgram = (gl, vsSource, fsSource) => {
+  const initShaderProgram = (gl: WebGLRenderingContext, vsSource: string, fsSource: string): WebGLProgram | null => {
     const vertexShader = loadShader(gl, gl.VERTEX_SHADER, vsSource);
     const fragmentShader = loadShader(gl, gl.FRAGMENT_SHADER, fsSource);
+    if (!vertexShader || !fragmentShader) return null;
 
     const shaderProgram = gl.createProgram();
+    if (!shaderProgram) return null;
     gl.attachShader(shaderProgram, vertexShader);
     gl.attachShader(shaderProgram, fragmentShader);
     gl.linkProgram(shaderProgram);
@@ -151,6 +154,7 @@ const ShaderBackground = () => {
     }
 
     const shaderProgram = initShaderProgram(gl, vsSource, fsSource);
+    if (!shaderProgram) return;
     const positionBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
     const positions = [
@@ -169,6 +173,7 @@ const ShaderBackground = () => {
       uniformLocations: {
         resolution: gl.getUniformLocation(shaderProgram, 'iResolution'),
         time: gl.getUniformLocation(shaderProgram, 'iTime'),
+        scale: gl.getUniformLocation(shaderProgram, 'iScale'),
       },
     };
 
@@ -192,6 +197,9 @@ const ShaderBackground = () => {
 
       gl.uniform2f(programInfo.uniformLocations.resolution, canvas.width, canvas.height);
       gl.uniform1f(programInfo.uniformLocations.time, currentTime);
+      
+      const scaleValue = window.innerWidth < 768 ? 2.5 : 5.0;
+      gl.uniform1f(programInfo.uniformLocations.scale, scaleValue);
 
       gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
       gl.vertexAttribPointer(
