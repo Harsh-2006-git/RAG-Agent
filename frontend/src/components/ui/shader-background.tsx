@@ -13,7 +13,11 @@ const ShaderBackground = () => {
 
   // Fragment shader source code
   const fsSource = `
+    #ifdef GL_ES
+    precision mediump float;
+    #else
     precision highp float;
+    #endif
     uniform vec2 iResolution;
     uniform float iTime;
     uniform float iScale;
@@ -224,7 +228,7 @@ const ShaderBackground = () => {
   }, []);
 
   return (
-    <canvas ref={canvasRef} className="fixed top-0 left-0 w-full h-full -z-10" />
+    <canvas ref={canvasRef} className="fixed inset-0 w-full h-full pointer-events-none z-0" />
   );
 };
 

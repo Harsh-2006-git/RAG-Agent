@@ -133,7 +133,7 @@ export default function Landing() {
       {/* Left middle purple glow blob */}
       <div className="absolute left-[-10%] top-[30%] w-[250px] h-[250px] md:w-[450px] md:h-[450px] bg-violet-600/15 md:bg-violet-600/40 blur-[100px] md:blur-[120px] rounded-full pointer-events-none z-0" />
 
-      <div className="max-w-7xl w-full px-6 py-4 md:py-10 flex flex-col items-center text-center z-10">
+      <div className="relative max-w-7xl w-full px-6 py-4 md:py-10 flex flex-col items-center text-center z-10">
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}
