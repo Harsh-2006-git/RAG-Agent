@@ -58,7 +58,7 @@ export default function Sidebar({ documents, isDeleting, onDelete, onNewChat, se
       </div>
 
       {/* Document List */}
-      <div className="flex-1 overflow-y-auto custom-scrollbar px-3">
+      <div className="flex-1 overflow-y-auto custom-scrollbar px-3 overscroll-contain">
         <div className="mb-2 px-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
           Knowledge Base
         </div>

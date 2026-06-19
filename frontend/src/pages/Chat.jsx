@@ -81,7 +81,7 @@ export default function Chat() {
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
 
   return (
-    <div className="flex h-screen bg-background overflow-hidden relative">
+    <div className="fixed inset-0 flex bg-background overflow-hidden overscroll-none">
       
       {/* Mobile Sidebar Overlay */}
       {sidebarOpen && (
@@ -113,7 +113,7 @@ export default function Chat() {
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-h-0 w-full relative overflow-hidden bg-background">
+      <div className="flex-1 flex flex-col min-h-0 w-full relative overflow-hidden bg-background overscroll-none">
         {/* Ambient glow backgrounds */}
         <div className="absolute top-[-10%] right-[-10%] w-[350px] h-[350px] bg-primary/5 blur-[100px] rounded-full pointer-events-none z-0" />
         <div className="absolute bottom-[-10%] left-[-10%] w-[350px] h-[350px] bg-secondary/5 blur-[100px] rounded-full pointer-events-none z-0" />

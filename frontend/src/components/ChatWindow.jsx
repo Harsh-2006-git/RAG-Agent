@@ -20,7 +20,7 @@ export default function ChatWindow({ messages, isTyping, onUploadClick, document
   }
 
   return (
-    <div className="flex-1 overflow-y-auto min-h-0 scroll-smooth">
+    <div className="flex-1 overflow-y-auto min-h-0 scroll-smooth overscroll-contain">
       <div className="flex flex-col pb-6">
         {messages.map((message) => (
           <MessageBubble key={message.id} message={message} />
