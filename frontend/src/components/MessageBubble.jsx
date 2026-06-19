@@ -1,20 +1,36 @@
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { Copy, Check, User, Bot, BarChart3, ChevronDown, ChevronUp, Cpu, Layers, Compass, Brain, Code2, Search } from 'lucide-react';
+import { Copy, Check, User, Bot, BarChart3, ChevronDown, ChevronUp, Cpu, Layers, Compass, Brain, Code2, Search, Volume2, VolumeX } from 'lucide-react';
 import { useState } from 'react';
 import { formatRelativeTime } from '../utils/helpers';
 import SourceCard from './SourceCard';
+import { speakText } from '../utils/speech';
 
 export default function MessageBubble({ message }) {
   const isUser = message.role === 'user';
   const isError = message.role === 'error';
   const [copied, setCopied] = useState(false);
   const [showAnalytics, setShowAnalytics] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(message.content);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleSpeak = () => {
+    if (isSpeaking) {
+      window.speechSynthesis.cancel();
+      setIsSpeaking(false);
+    } else {
+      speakText(
+        message.content,
+        () => setIsSpeaking(false),
+        () => setIsSpeaking(false)
+      );
+      setIsSpeaking(true);
+    }
   };
 
   return (
@@ -42,13 +58,24 @@ export default function MessageBubble({ message }) {
                 {formatRelativeTime(message.timestamp)}
               </span>
               {!isUser && !isError && (
-                <button 
-                  onClick={handleCopy}
-                  className="text-muted-foreground hover:text-zinc-200 transition-colors"
-                  title="Copy message"
-                >
-                  {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={handleSpeak}
+                    className={`transition-colors cursor-pointer ${
+                      isSpeaking ? 'text-emerald-400 hover:text-emerald-300' : 'text-muted-foreground hover:text-zinc-200'
+                    }`}
+                    title={isSpeaking ? "Stop reading" : "Read aloud"}
+                  >
+                    {isSpeaking ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+                  </button>
+                  <button 
+                    onClick={handleCopy}
+                    className="text-muted-foreground hover:text-zinc-200 transition-colors cursor-pointer"
+                    title="Copy message"
+                  >
+                    {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
+                  </button>
+                </div>
               )}
             </div>
           </div>

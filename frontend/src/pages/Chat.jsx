@@ -8,6 +8,7 @@ import UploadModal from '../components/UploadModal';
 import { useDocuments } from '../hooks/useDocuments';
 import { useChat } from '../hooks/useChat';
 import { useChatSessions } from '../hooks/useChatSessions';
+import { speakText } from '../utils/speech';
 
 export default function Chat() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -27,6 +28,30 @@ export default function Chat() {
     currentSessionId,
     loadChat
   } = useChat();
+  const [ttsEnabled, setTtsEnabled] = useState(() => {
+    return localStorage.getItem('docuchat_tts_enabled') === 'true';
+  });
+
+  const handleToggleTts = () => {
+    setTtsEnabled(prev => {
+      const next = !prev;
+      localStorage.setItem('docuchat_tts_enabled', String(next));
+      if (!next) {
+        window.speechSynthesis.cancel();
+      }
+      return next;
+    });
+  };
+
+  useEffect(() => {
+    if (messages.length === 0) return;
+    const lastMessage = messages[messages.length - 1];
+    if (lastMessage.role === 'ai' && lastMessage.isNew && ttsEnabled) {
+      speakText(lastMessage.content, () => {
+        lastMessage.isNew = false;
+      });
+    }
+  }, [messages, ttsEnabled]);
 
   const { sessions, fetchSessions, deleteSession } = useChatSessions();
 
@@ -104,6 +129,8 @@ export default function Chat() {
         <ChatInput 
           onSendMessage={handleSendMessage} 
           isTyping={isTyping} 
+          ttsEnabled={ttsEnabled}
+          onToggleTts={handleToggleTts}
         />
       </div>
 

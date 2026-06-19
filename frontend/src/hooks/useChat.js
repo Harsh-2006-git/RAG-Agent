@@ -71,7 +71,8 @@ export function useChat() {
         sources: response.sources,
         processingTime: response.processing_time_ms,
         analytics: response.analytics || null,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        isNew: true
       };
 
       setMessages(prev => [...prev, aiMessage]);
