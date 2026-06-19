@@ -5,6 +5,7 @@ import Header from '../components/Header';
 import ChatWindow from '../components/ChatWindow';
 import ChatInput from '../components/ChatInput';
 import UploadModal from '../components/UploadModal';
+import SettingsModal from '../components/SettingsModal';
 import { useDocuments } from '../hooks/useDocuments';
 import { useChat } from '../hooks/useChat';
 import { useChatSessions } from '../hooks/useChatSessions';
@@ -13,10 +14,11 @@ import { speakText } from '../utils/speech';
 export default function Chat() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const location = useLocation();
 
   const { documents, isDeleting, deleteDoc } = useDocuments();
-  const [selectedModel, setSelectedModel] = useState('gemini-2.5-flash');
+  const [selectedModel, setSelectedModel] = useState('llama-3.3-70b-versatile');
   const [selectedRetrievalMode, setSelectedRetrievalMode] = useState('history_aware');
   const { 
     messages, 
@@ -105,11 +107,17 @@ export default function Chat() {
           currentSessionId={currentSessionId}
           onSelectSession={loadChat}
           onDeleteSession={deleteSession}
+          onClose={() => setSidebarOpen(false)}
+          onSettingsClick={() => setSettingsOpen(true)}
         />
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col h-full w-full relative">
+      <div className="flex-1 flex flex-col min-h-0 w-full relative overflow-hidden bg-background">
+        {/* Ambient glow backgrounds */}
+        <div className="absolute top-[-10%] right-[-10%] w-[350px] h-[350px] bg-primary/5 blur-[100px] rounded-full pointer-events-none z-0" />
+        <div className="absolute bottom-[-10%] left-[-10%] w-[350px] h-[350px] bg-secondary/5 blur-[100px] rounded-full pointer-events-none z-0" />
+        
         <Header 
           onUploadClick={() => setUploadModalOpen(true)} 
           toggleSidebar={toggleSidebar} 
@@ -131,6 +139,8 @@ export default function Chat() {
           isTyping={isTyping} 
           ttsEnabled={ttsEnabled}
           onToggleTts={handleToggleTts}
+          hasDocuments={documents.length > 0}
+          onUploadClick={() => setUploadModalOpen(true)}
         />
       </div>
 
@@ -138,6 +148,16 @@ export default function Chat() {
       <UploadModal 
         isOpen={uploadModalOpen} 
         onClose={() => setUploadModalOpen(false)} 
+      />
+      <SettingsModal 
+        isOpen={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+        selectedModel={selectedModel}
+        setSelectedModel={setSelectedModel}
+        selectedRetrievalMode={selectedRetrievalMode}
+        setSelectedRetrievalMode={setSelectedRetrievalMode}
+        ttsEnabled={ttsEnabled}
+        onToggleTts={handleToggleTts}
       />
     </div>
   );

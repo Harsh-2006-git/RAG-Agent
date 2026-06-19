@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Menu, ChevronDown, Home, Sparkles, Cpu, Zap, Search, MessageSquare, Layers } from 'lucide-react';
+import { Menu, ChevronDown, Home, Bot, Brain, Cpu, Zap, Search, MessageSquare, Layers } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 export default function Header({ toggleSidebar, selectedModel, setSelectedModel, selectedRetrievalMode, setSelectedRetrievalMode }) {
@@ -10,7 +10,7 @@ export default function Header({ toggleSidebar, selectedModel, setSelectedModel,
   const retrievalDropdownRef = useRef(null);
 
   const models = [
-    { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash', icon: <Sparkles className="w-4 h-4 text-primary" /> },
+    { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash', icon: <Bot className="w-4 h-4 text-violet-400" /> },
     { id: 'llama-3.3-70b-versatile', name: 'Llama 3.3 70B (Groq)', icon: <Zap className="w-4 h-4 text-amber-500" /> },
     { id: 'llama3.2:latest', name: 'Llama 3.2 (Local)', icon: <Cpu className="w-4 h-4 text-blue-500" /> }
   ];
@@ -19,7 +19,7 @@ export default function Header({ toggleSidebar, selectedModel, setSelectedModel,
     { id: 'simple', name: 'Simple Vector Search', icon: <Search className="w-4 h-4 text-zinc-400" /> },
     { id: 'history_aware', name: 'History-Aware RAG', icon: <MessageSquare className="w-4 h-4 text-indigo-400" /> },
     { id: 'multi_query', name: 'Multi-Query RRF', icon: <Layers className="w-4 h-4 text-emerald-400" /> },
-    { id: 'advanced', name: 'Advanced RAG Hybrid', icon: <Sparkles className="w-4 h-4 text-violet-400" /> }
+    { id: 'advanced', name: 'Advanced RAG Hybrid', icon: <Brain className="w-4 h-4 text-violet-400" /> }
   ];
 
   const currentModel = models.find(m => m.id === selectedModel) || models[0];
@@ -39,7 +39,7 @@ export default function Header({ toggleSidebar, selectedModel, setSelectedModel,
   }, []);
 
   return (
-    <header className="h-14 bg-background border-b border-border flex items-center justify-between px-4 shrink-0 backdrop-blur-md bg-opacity-90 sticky top-0 z-10">
+    <header className="h-14 bg-zinc-950/60 border-b border-border/50 flex items-center justify-between px-4 shrink-0 backdrop-blur-md sticky top-0 z-10">
       <div className="flex items-center gap-3">
         <button 
           onClick={toggleSidebar}
@@ -130,24 +130,18 @@ export default function Header({ toggleSidebar, selectedModel, setSelectedModel,
               ))}
             </div>
           )}
-        </div>
       </div>
+    </div>
 
-      <div className="flex items-center gap-3">
-        {/* Home Button */}
-        <button
-          onClick={() => navigate('/')}
-          className="flex items-center gap-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-100 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors border border-border"
-          title="Go to Home"
-        >
-          <Home className="w-4 h-4" />
-          <span className="hidden sm:inline">Home</span>
-        </button>
-
-        <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-primary to-blue-600 flex items-center justify-center cursor-pointer ring-2 ring-background border border-border">
-          <span className="text-xs font-bold text-white">US</span>
-        </div>
-      </div>
+      {/* Back to Home Button */}
+      <button 
+        onClick={() => navigate('/')}
+        className="flex items-center gap-1.5 text-xs text-zinc-400 hover:text-zinc-200 transition-colors bg-zinc-900 px-3 py-1.5 rounded-lg border border-border cursor-pointer font-medium"
+        title="Back to Landing Page"
+      >
+        <Home className="w-4 h-4" />
+        <span className="hidden sm:inline">Back to Home</span>
+      </button>
     </header>
   );
 }

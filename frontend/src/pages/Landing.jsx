@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowRight, Upload, Sparkles, Database, Search, MessageSquare } from 'lucide-react';
+import { ArrowRight, Upload, Brain, Database, Search, MessageSquare } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import ShaderBackground from '../components/ui/shader-background';
 
@@ -23,7 +23,7 @@ export default function Landing() {
       iconBg: "bg-blue-950/35 border-blue-500/10"
     },
     {
-      icon: <Sparkles className="w-5 h-5 text-amber-400" />,
+      icon: <Brain className="w-5 h-5 text-amber-400" />,
       title: "Multi-Model AI",
       description: "Leverage state-of-the-art LLMs like Gemini, Groq, or private local Ollama models.",
       hoverClass: "hover:border-amber-500/40 hover:shadow-[0_0_25px_rgba(245,158,11,0.15)]",
@@ -141,7 +141,7 @@ export default function Landing() {
           transition={{ duration: 0.5 }}
           className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-zinc-900/80 backdrop-blur border border-border mb-6 md:mb-8"
         >
-          <Sparkles className="w-4 h-4 text-primary" />
+          <Brain className="w-4 h-4 text-primary" />
           <span className="text-xs sm:text-sm font-medium text-zinc-300">Powered by Retrieval-Augmented Generation</span>
         </motion.div>
 
@@ -149,10 +149,10 @@ export default function Landing() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.1 }}
-          className="font-serif text-[32px] sm:text-4xl md:text-6xl lg:text-7xl text-zinc-100 tracking-normal mb-4 md:mb-5 leading-[1.15] flex flex-col items-center"
+          className="font-serif text-[8vw] sm:text-5xl md:text-6xl lg:text-7xl text-zinc-100 tracking-normal mb-4 md:mb-5 leading-[1.1] flex flex-col items-center px-4"
         >
           <span className="whitespace-nowrap">Chat With Your PDFs</span>
-          <span className="font-serif font-normal text-violet-300 text-[26px] sm:text-3xl md:text-5xl lg:text-6xl block mt-2 pb-2 leading-normal tracking-wide normal-case whitespace-nowrap">
+          <span className="font-serif font-normal text-violet-300 text-[6.5vw] sm:text-4xl md:text-5xl lg:text-6xl block mt-2 pb-2 leading-normal tracking-wide normal-case whitespace-nowrap">
             using AI
           </span>
         </motion.h1>
@@ -174,13 +174,13 @@ export default function Landing() {
         >
           <button
             onClick={() => navigate('/chat')}
-            className="flex items-center justify-center gap-2 w-full sm:w-auto px-5 py-2.5 md:px-8 md:py-4 text-sm md:text-base bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg md:rounded-xl font-semibold transition-all shadow-[0_0_30px_rgba(124,58,237,0.3)] hover:shadow-[0_0_40px_rgba(124,58,237,0.5)] hover:-translate-y-1"
+            className="flex items-center justify-center gap-2 w-full sm:w-auto px-6 py-3.5 md:px-8 md:py-4 text-base bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl font-semibold transition-all shadow-[0_0_30px_rgba(124,58,237,0.3)] hover:shadow-[0_0_40px_rgba(124,58,237,0.5)] hover:-translate-y-1"
           >
             Start Chatting <ArrowRight className="w-5 h-5" />
           </button>
           <button
             onClick={() => navigate('/chat?upload=true')}
-            className="flex items-center justify-center gap-2 w-full sm:w-auto px-5 py-2.5 md:px-8 md:py-4 text-sm md:text-base bg-zinc-900 hover:bg-zinc-800 text-white rounded-lg md:rounded-xl font-semibold border border-border transition-all hover:-translate-y-1"
+            className="flex items-center justify-center gap-2 w-full sm:w-auto px-6 py-3.5 md:px-8 md:py-4 text-base bg-zinc-900 hover:bg-zinc-800 text-white rounded-xl font-semibold border border-border transition-all hover:-translate-y-1"
           >
             <Upload className="w-5 h-5" /> Upload PDF
           </button>
@@ -209,13 +209,13 @@ export default function Landing() {
             {[...features, ...features].map((f, i) => (
               <div
                 key={i}
-                className={`flex-shrink-0 w-[230px] md:w-[280px] bg-card/45 backdrop-blur-md border border-border/80 rounded-xl p-4 md:p-5 text-left transition-all duration-300 cursor-default select-none ${f.hoverClass}`}
+                className={`flex-shrink-0 w-[255px] md:w-[280px] bg-card/45 backdrop-blur-md border border-border/80 rounded-xl p-5 text-left transition-all duration-300 cursor-default select-none ${f.hoverClass}`}
               >
-                <div className={`w-8 h-8 md:w-9 md:h-9 rounded-lg flex items-center justify-center mb-3 md:mb-4 border ${f.iconBg}`}>
+                <div className={`w-9 h-9 rounded-lg flex items-center justify-center mb-3.5 border ${f.iconBg}`}>
                   {f.icon}
                 </div>
-                <h3 className="font-semibold text-xs md:text-sm text-zinc-100 mb-1.5 line-clamp-1">{f.title}</h3>
-                <p className="text-[10px] md:text-xs text-zinc-400 leading-relaxed line-clamp-2 md:line-clamp-3">{f.description}</p>
+                <h3 className="font-semibold text-sm md:text-sm text-zinc-100 mb-1.5 line-clamp-1">{f.title}</h3>
+                <p className="text-xs md:text-xs text-zinc-400 leading-relaxed line-clamp-2 md:line-clamp-3">{f.description}</p>
               </div>
             ))}
           </div>

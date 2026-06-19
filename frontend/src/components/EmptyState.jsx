@@ -1,4 +1,4 @@
-import { Sparkles, Upload } from 'lucide-react';
+import { MessagesSquare, Upload } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export default function EmptyState({ onUploadClick, hasDocuments }) {
@@ -11,7 +11,7 @@ export default function EmptyState({ onUploadClick, hasDocuments }) {
         className="mb-8"
       >
         <div className="w-20 h-20 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-6 border border-primary/20 shadow-[0_0_30px_rgba(124,58,237,0.2)]">
-          <Sparkles className="w-10 h-10 text-primary" />
+          <MessagesSquare className="w-10 h-10 text-primary" />
         </div>
         <h2 className="text-3xl font-bold mb-3 tracking-tight">How can I help you today?</h2>
         <p className="text-muted-foreground max-w-md mx-auto mb-6">

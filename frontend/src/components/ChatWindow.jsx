@@ -13,14 +13,14 @@ export default function ChatWindow({ messages, isTyping, onUploadClick, document
 
   if (messages.length === 0) {
     return (
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto min-h-0">
         <EmptyState onUploadClick={onUploadClick} hasDocuments={documents.length > 0} />
       </div>
     );
   }
 
   return (
-    <div className="flex-1 overflow-y-auto scroll-smooth">
+    <div className="flex-1 overflow-y-auto min-h-0 scroll-smooth">
       <div className="flex flex-col pb-6">
         {messages.map((message) => (
           <MessageBubble key={message.id} message={message} />

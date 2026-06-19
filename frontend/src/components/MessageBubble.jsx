@@ -34,16 +34,20 @@ export default function MessageBubble({ message }) {
   };
 
   return (
-    <div className={`py-6 flex w-full ${isUser ? 'bg-transparent' : 'bg-zinc-900/30'}`}>
-      <div className="max-w-4xl mx-auto flex w-full px-4 gap-6">
-        <div className="shrink-0 mt-1">
+    <div className={`py-4 md:py-6 flex w-full ${isUser ? 'bg-transparent' : 'bg-zinc-900/30 border-y border-border/10'}`}>
+      <div className="max-w-4xl mx-auto flex w-full px-4 gap-3 md:gap-6">
+        <div className="shrink-0 mt-0.5">
           {isUser ? (
-            <div className="w-8 h-8 rounded bg-primary/20 flex items-center justify-center border border-primary/30">
-              <User className="w-5 h-5 text-primary" />
+            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-violet-600 to-indigo-600 flex items-center justify-center border border-primary/20 shadow-md shadow-primary/10">
+              <User className="w-4.5 h-4.5 text-white" />
             </div>
           ) : (
-            <div className={`w-8 h-8 rounded flex items-center justify-center border ${isError ? 'bg-destructive/20 border-destructive/30' : 'bg-secondary/20 border-secondary/30'}`}>
-              <Bot className={`w-5 h-5 ${isError ? 'text-destructive' : 'text-secondary'}`} />
+            <div className={`w-8 h-8 rounded-full flex items-center justify-center border shadow-md ${
+              isError 
+                ? 'bg-gradient-to-tr from-red-600 to-rose-700 border-red-500/20 shadow-red-500/10' 
+                : 'bg-gradient-to-tr from-blue-600 to-cyan-500 border-blue-500/20 shadow-blue-500/10'
+            }`}>
+              <Bot className="w-4.5 h-4.5 text-white" />
             </div>
           )}
         </div>
