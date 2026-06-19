@@ -1,0 +1,103 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 4%;
+    --foreground: 0 0% 98%;
+
+    --card: 0 0% 7%;
+    --card-foreground: 0 0% 98%;
+
+    --popover: 0 0% 7%;
+    --popover-foreground: 0 0% 98%;
+
+    --primary: 262 83% 58%; /* Purple #7C3AED */
+    --primary-foreground: 0 0% 98%;
+
+    --secondary: 221 83% 53%; /* Blue #2563EB */
+    --secondary-foreground: 0 0% 98%;
+
+    --muted: 0 0% 15%;
+    --muted-foreground: 240 5% 64.9%;
+
+    --accent: 0 0% 15%;
+    --accent-foreground: 0 0% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 0 0% 13%;
+    --input: 0 0% 13%;
+    --ring: 262 83% 58%;
+
+    --radius: 0.5rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted));
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--border));
+}
+
+/* Markdown Styles */
+.prose pre {
+  @apply bg-zinc-900 border border-border p-4 rounded-md overflow-x-auto;
+}
+
+.prose code {
+  @apply bg-zinc-900 px-1 py-0.5 rounded text-sm font-mono text-zinc-200;
+}
+
+.prose pre code {
+  @apply bg-transparent p-0 text-zinc-300;
+}
+
+.prose p {
+  @apply mb-4 leading-relaxed;
+}
+
+.prose p:last-child {
+  @apply mb-0;
+}
+
+.prose ul {
+  @apply list-disc list-inside mb-4 space-y-1;
+}
+
+.prose ol {
+  @apply list-decimal list-inside mb-4 space-y-1;
+}
+
+.prose h1, .prose h2, .prose h3, .prose h4 {
+  @apply font-semibold mt-6 mb-3 text-zinc-100;
+}
+
+.prose a {
+  @apply text-primary underline underline-offset-4 hover:text-primary/80;
+}

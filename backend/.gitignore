@@ -1,0 +1,22 @@
+# Python Cache Files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+
+# Virtual Environments
+.venv/
+venv/
+ENV/
+env/
+
+# Environment configurations
+.env
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Vector Store / database local directory
+vector_store/
+data/

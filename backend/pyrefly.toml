@@ -1,0 +1,2 @@
+# pyrefly.toml configuration
+site-package-path = ".venv/Lib/site-packages"
