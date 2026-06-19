@@ -8,16 +8,52 @@ from app.models.schemas import ChatRequest, ChatResponse, SourceChunk, RAGAnalyt
 class ChatService:
     def __init__(self, retriever: Retriever, api_key: str, groq_key: str = ""):
         self.retriever = retriever
-        self.api_key_configured = False
         self.groq_key = groq_key
         
-        if api_key and api_key != "your_gemini_api_key_here":
-            try:
-                genai.configure(api_key=api_key)
-                self.model = genai.GenerativeModel('gemini-2.5-flash')
-                self.api_key_configured = True
-            except Exception as e:
-                print(f"Error configuring Gemini Generative Model: {e}")
+        # Parse Gemini keys (comma-separated list)
+        self.gemini_keys = [k.strip() for k in api_key.split(",") if k.strip() and k.strip() != "your_gemini_api_key_here"]
+        self.current_gemini_idx = 0
+        self.api_key_configured = len(self.gemini_keys) > 0
+        
+        # Parse Groq keys (comma-separated list)
+        self.groq_keys = [k.strip() for k in groq_key.split(",") if k.strip()]
+        self.current_groq_idx = 0
+        
+        # Configure initial Gemini model
+        self._configure_gemini()
+
+    def _configure_gemini(self):
+        if not self.gemini_keys:
+            self.api_key_configured = False
+            return
+        active_key = self.gemini_keys[self.current_gemini_idx]
+        try:
+            genai.configure(api_key=active_key)
+            self.model = genai.GenerativeModel('gemini-2.5-flash')
+            self.api_key_configured = True
+            print(f"Gemini configured with key index {self.current_gemini_idx}")
+        except Exception as e:
+            print(f"Error configuring Gemini with key index {self.current_gemini_idx}: {e}")
+
+    def _rotate_gemini_key(self) -> bool:
+        if len(self.gemini_keys) <= 1:
+            return False
+        self.current_gemini_idx = (self.current_gemini_idx + 1) % len(self.gemini_keys)
+        print(f"Rotating to Gemini key index {self.current_gemini_idx}...")
+        self._configure_gemini()
+        return True
+
+    def _rotate_groq_key(self) -> bool:
+        if len(self.groq_keys) <= 1:
+            return False
+        self.current_groq_idx = (self.current_groq_idx + 1) % len(self.groq_keys)
+        print(f"Rotating to Groq key index {self.current_groq_idx}...")
+        return True
+
+    def _get_active_groq_key(self) -> str:
+        if not self.groq_keys:
+            return ""
+        return self.groq_keys[self.current_groq_idx]
 
     def generate_answer(self, request: ChatRequest) -> ChatResponse:
         start_time = time.time()
@@ -35,9 +71,13 @@ class ChatService:
         retrieval_mode = request.retrieval_mode or "history_aware"
         model_name = request.model or "gemini-2.5-flash"
         
+        # Limit history to the last 2 turns (last 4 messages) to optimize tokens and avoid API rate limits
+        if request.history:
+            request.history = request.history[-4:]
+
         search_query = request.question
         retrieved_queries = []
-        
+
         # Build history log for query rewriting if history is present
         history_log = ""
         if request.history:
@@ -72,7 +112,7 @@ class ChatService:
             all_lists.append(self.retriever.retrieve(
                 query=search_query,
                 document_ids=request.document_ids,
-                top_k=5,
+                top_k=3,
                 owner_id=request.owner_id
             ))
             # Add other variations
@@ -80,20 +120,20 @@ class ChatService:
                 all_lists.append(self.retriever.retrieve(
                     query=var,
                     document_ids=request.document_ids,
-                    top_k=5,
+                    top_k=3,
                     owner_id=request.owner_id
                 ))
                 
             # Merge using Reciprocal Rank Fusion (RRF)
             sources = self._reciprocal_rank_fusion(all_lists)
-            # Take top 5
-            sources = sources[:5]
+            # Take top 3
+            sources = sources[:3]
         else:
             # Simple or History-Aware retrieval
             sources = self.retriever.retrieve(
                 query=search_query,
                 document_ids=request.document_ids,
-                top_k=5,
+                top_k=3,
                 owner_id=request.owner_id
             )
         
@@ -107,7 +147,7 @@ class ChatService:
         system_content = f"""You are a helpful, professional QA assistant. Answer the user's question using the retrieved context.
 CRITICAL RULES:
 1. Do NOT include preambles, meta-commentary, introductions, or transitions in your response (e.g. do NOT say "Based on the context...", "According to the files...", "Here is what I found:").
-2. Focus purely on giving a complete, rich, detailed, and comprehensive answer to the user's question. Do NOT make it overly concise or leave out important facts.
+2. Focus purely on giving a direct, clear, and concise answer. Avoid fluff, meta-commentary, or long-winded explanations.
 3. Do NOT mention page numbers, source IDs, or document names in your text response (citations are already displayed by the UI).
 
 Context information:
@@ -143,7 +183,7 @@ Context information:
 
 CRITICAL RULES:
 1. Do NOT include preambles, meta-commentary, introductions, or transitions in your response (e.g. do NOT say "Based on the context...", "According to the files...", "Here is what I found:").
-2. Focus purely on giving a complete, rich, detailed, and comprehensive answer to the user's question. Do NOT make it overly concise or leave out important facts.
+2. Focus purely on giving a direct, clear, and concise answer. Avoid fluff, meta-commentary, or long-winded explanations.
 3. Do NOT mention page numbers, source IDs, or document names in your text response (citations are already displayed by the UI).
 
 Context information:
@@ -158,31 +198,54 @@ Answer:"""
         model_name = request.model or "gemini-2.5-flash"
         
         if "groq" in model_name.lower() or model_name == "llama-3.3-70b-versatile":
-            # Call Groq API
-            if not self.groq_key:
-                answer = "Groq API key is not configured. Please set GROQ_API_KEY in the backend .env file."
-            else:
+            # Call Groq API with failover rotation
+            max_attempts = max(1, len(self.groq_keys))
+            for attempt in range(max_attempts):
+                active_groq_key = self._get_active_groq_key()
+                if not active_groq_key:
+                    answer = "Groq API key is not configured. Please set GROQ_API_KEY in the backend .env file."
+                    break
                 try:
                     import httpx
-                    print(f"Sending chat messages to Groq model {model_name}...")
+                    print(f"Sending chat messages to Groq model {model_name} (attempt {attempt+1}/{max_attempts})...")
                     response = httpx.post(
                         "https://api.groq.com/openai/v1/chat/completions",
                         headers={
-                            "Authorization": f"Bearer {self.groq_key}",
+                            "Authorization": f"Bearer {active_groq_key}",
                             "Content-Type": "application/json"
                         },
                         json={
                             "model": "llama-3.3-70b-versatile",
                             "messages": messages,
-                            "temperature": 0.2
+                            "temperature": 0.2,
+                            "max_tokens": 800
                         },
                         timeout=30.0
                     )
+                    
+                    if response.status_code == 429:
+                        print("Groq API hit 429 rate limit.")
+                        if self._rotate_groq_key() and attempt < max_attempts - 1:
+                            continue
+                        else:
+                            answer = "All configured Groq API keys are currently rate-limited (429). Please wait a moment and try again."
+                            break
+                            
                     response.raise_for_status()
                     answer = response.json().get("choices", [{}])[0].get("message", {}).get("content", "")
+                    break # Success!
                 except Exception as e:
                     print(f"Groq API Error: {e}")
+                    is_rate_limit = False
+                    if hasattr(e, 'response') and e.response is not None:
+                        is_rate_limit = e.response.status_code == 429
+                    elif "429" in str(e):
+                        is_rate_limit = True
+                        
+                    if is_rate_limit and self._rotate_groq_key():
+                        continue
                     answer = f"I'm sorry, I encountered an error while trying to generate an answer with Groq: {str(e)}"
+                    break
         elif "llama" in model_name.lower() or "ollama" in model_name.lower():
             # Call Ollama local API
             try:
@@ -194,7 +257,11 @@ Answer:"""
                     json={
                         "model": "llama3.2:latest",
                         "messages": messages,
-                        "stream": False
+                        "stream": False,
+                        "options": {
+                            "temperature": 0.2,
+                            "num_predict": 800
+                        }
                     },
                     timeout=60.0
                 )
@@ -204,16 +271,26 @@ Answer:"""
                 print(f"Ollama API Error: {e}")
                 answer = f"I'm sorry, I encountered an error while trying to generate an answer with Ollama: {str(e)}"
         else:
-            # Call Gemini API
+            # Call Gemini API with failover rotation
             if not self.api_key_configured:
                 answer = "Gemini API key is not configured. Please select Llama 3.2 (Local) or Groq in the model dropdown, or configure GEMINI_API_KEY in the backend .env file."
             else:
-                try:
-                    response = self.model.generate_content(prompt)
-                    answer = response.text
-                except Exception as e:
-                    print(f"Gemini API Error: {e}")
-                    answer = f"I'm sorry, I encountered an error while trying to generate an answer: {str(e)}"
+                max_attempts = max(1, len(self.gemini_keys))
+                for attempt in range(max_attempts):
+                    try:
+                        print(f"Sending chat to Gemini (attempt {attempt+1}/{max_attempts})...")
+                        response = self.model.generate_content(
+                            prompt,
+                            generation_config={"max_output_tokens": 800}
+                        )
+                        answer = response.text
+                        break # Success!
+                    except Exception as e:
+                        print(f"Gemini API Error: {e}")
+                        if ("429" in str(e) or "ResourceExhausted" in str(e) or "quota" in str(e).lower()) and self._rotate_gemini_key() and attempt < max_attempts - 1:
+                            continue # Try next key
+                        answer = f"I'm sorry, I encountered an error while trying to generate an answer: {str(e)}"
+                        break
  
         # Calculate RAG Analytics
         if not sources:
@@ -264,27 +341,50 @@ Answer:"""
     def _call_llm(self, prompt: str, model_name: str, max_tokens: Optional[int] = None) -> str:
         """Helper to invoke the correct LLM API based on model name."""
         if "groq" in model_name.lower() or model_name == "llama-3.3-70b-versatile":
-            if not self.groq_key:
-                raise ValueError("Groq API key is not configured.")
-            import httpx
-            json_payload = {
-                "model": "llama-3.3-70b-versatile",
-                "messages": [{"role": "user", "content": prompt}],
-                "temperature": 0.0
-            }
-            if max_tokens:
-                json_payload["max_tokens"] = max_tokens
-            response = httpx.post(
-                "https://api.groq.com/openai/v1/chat/completions",
-                headers={
-                    "Authorization": f"Bearer {self.groq_key}",
-                    "Content-Type": "application/json"
-                },
-                json=json_payload,
-                timeout=30.0
-            )
-            response.raise_for_status()
-            return response.json().get("choices", [{}])[0].get("message", {}).get("content", "")
+            max_attempts = max(1, len(self.groq_keys))
+            last_err = None
+            for attempt in range(max_attempts):
+                active_groq_key = self._get_active_groq_key()
+                if not active_groq_key:
+                    raise ValueError("Groq API key is not configured.")
+                try:
+                    import httpx
+                    json_payload = {
+                        "model": "llama-3.3-70b-versatile",
+                        "messages": [{"role": "user", "content": prompt}],
+                        "temperature": 0.0
+                    }
+                    if max_tokens:
+                        json_payload["max_tokens"] = max_tokens
+                    response = httpx.post(
+                        "https://api.groq.com/openai/v1/chat/completions",
+                        headers={
+                            "Authorization": f"Bearer {active_groq_key}",
+                            "Content-Type": "application/json"
+                        },
+                        json=json_payload,
+                        timeout=30.0
+                    )
+                    
+                    if response.status_code == 429:
+                        print("Groq API hit 429 rate limit during LLM call helper.")
+                        if self._rotate_groq_key() and attempt < max_attempts - 1:
+                            continue
+                            
+                    response.raise_for_status()
+                    return response.json().get("choices", [{}])[0].get("message", {}).get("content", "")
+                except Exception as e:
+                    last_err = e
+                    is_rate_limit = False
+                    if hasattr(e, 'response') and e.response is not None:
+                        is_rate_limit = e.response.status_code == 429
+                    elif "429" in str(e):
+                        is_rate_limit = True
+                        
+                    if is_rate_limit and self._rotate_groq_key() and attempt < max_attempts - 1:
+                        continue
+                    break
+            raise last_err or RuntimeError("Failed to call Groq LLM")
             
         elif "llama" in model_name.lower() or "ollama" in model_name.lower():
             import httpx
@@ -308,20 +408,33 @@ Answer:"""
         else:
             if not self.api_key_configured:
                 raise ValueError("Gemini API key is not configured.")
-            gen_config = {}
-            if max_tokens:
-                gen_config["max_output_tokens"] = max_tokens
-            response = self.model.generate_content(prompt, generation_config=gen_config)
-            return response.text
+            max_attempts = max(1, len(self.gemini_keys))
+            last_err = None
+            for attempt in range(max_attempts):
+                try:
+                    gen_config = {}
+                    if max_tokens:
+                        gen_config["max_output_tokens"] = max_tokens
+                    response = self.model.generate_content(prompt, generation_config=gen_config)
+                    return response.text
+                except Exception as e:
+                    last_err = e
+                    if ("429" in str(e) or "ResourceExhausted" in str(e) or "quota" in str(e).lower()) and self._rotate_gemini_key() and attempt < max_attempts - 1:
+                        continue
+                    break
+            raise last_err or RuntimeError("Failed to call Gemini LLM")
 
     def _rewrite_query(self, original_query: str, history_log: str, model_name: str) -> str:
         """Rewrite the user question to be standalone and searchable using the conversation history."""
-        prompt = f"""Given the following conversation history, rewrite the new user question to be a standalone, search-optimized query.
-Do NOT include any introduction, conversational filler, or explanations. Just output the rewritten search query.
+        prompt = f"""Task: Rewrite the following user question to be a standalone, self-contained search query.
+Rule 1: If the user question is already standalone (i.e., it does not refer to previous chat history via pronouns like "he", "she", "it", "they", "this", "that"), you must output the user question exactly as it is.
+Rule 2: If the question refers to previous chat context, rewrite it to include that context so it can be searched in a database.
+Rule 3: Output ONLY the standalone query. Do not add introductions, explanations, quotes, or punctuation.
 
+Chat History:
 {history_log}
-New User Question: {original_query}
 
+New User Question: {original_query}
 Standalone Query:"""
         
         try:
