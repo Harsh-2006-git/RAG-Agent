@@ -14,6 +14,10 @@
 
 ---
 
+<img width="1892" height="887" alt="Screenshot 2026-06-20 122210" src="https://github.com/user-attachments/assets/e89edd88-3023-459f-b6ac-c4cdb7cc4128" />
+
+---
+
 ## 📋 Table of Contents
 * [🌟 Features](#-features)
 * [🏗️ Architecture](#%EF%B8%8F-architecture)
