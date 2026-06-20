@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRight, Upload, Brain, Database, Search, MessageSquare } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -6,6 +6,28 @@ import ShaderBackground from '../components/ui/shader-background';
 
 export default function Landing() {
   const navigate = useNavigate();
+  const [isDesktop, setIsDesktop] = useState(false);
+
+  const scrollRef = useRef(null);
+  const isDown = useRef(false);
+  const startX = useRef(0);
+  const scrollLeftVal = useRef(0);
+  const isInteracting = useRef(false);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(min-width: 1280px)');
+    setIsDesktop(mediaQuery.matches);
+
+    const handler = (e) => setIsDesktop(e.matches);
+    mediaQuery.addEventListener('change', handler);
+    return () => mediaQuery.removeEventListener('change', handler);
+  }, []);
+
+  useEffect(() => {
+    if (isDesktop && scrollRef.current) {
+      scrollRef.current.scrollLeft = 0;
+    }
+  }, [isDesktop]);
 
   const features = [
     {
@@ -37,12 +59,6 @@ export default function Landing() {
       iconBg: "bg-emerald-950/35 border-emerald-500/10"
     }
   ];
-
-  const scrollRef = useRef(null);
-  const isDown = useRef(false);
-  const startX = useRef(0);
-  const scrollLeftVal = useRef(0);
-  const isInteracting = useRef(false);
 
   const handleMouseDown = (e) => {
     const container = scrollRef.current;
@@ -99,6 +115,8 @@ export default function Landing() {
   };
 
   useEffect(() => {
+    if (isDesktop) return;
+
     const container = scrollRef.current;
     if (!container) return;
 
@@ -123,7 +141,7 @@ export default function Landing() {
     return () => {
       cancelAnimationFrame(animationFrameId);
     };
-  }, []);
+  }, [isDesktop]);
 
   return (
     <div className="min-h-screen md:h-screen flex flex-col items-center justify-center relative overflow-hidden py-12 md:py-0">
@@ -174,15 +192,15 @@ export default function Landing() {
         >
           <button
             onClick={() => navigate('/chat')}
-            className="flex items-center justify-center gap-2 w-full sm:w-auto px-6 py-3.5 md:px-8 md:py-4 text-base bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl font-semibold transition-all shadow-[0_0_30px_rgba(124,58,237,0.3)] hover:shadow-[0_0_40px_rgba(124,58,237,0.5)] hover:-translate-y-1"
+            className="flex items-center justify-center gap-2 w-full sm:w-auto px-5 py-2.5 md:px-6 md:py-3.5 text-sm bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg font-semibold transition-all shadow-[0_0_30px_rgba(124,58,237,0.3)] hover:shadow-[0_0_40px_rgba(124,58,237,0.5)] hover:-translate-y-1"
           >
-            Start Chatting <ArrowRight className="w-5 h-5" />
+            Start Chatting <ArrowRight className="w-4 h-4" />
           </button>
           <button
             onClick={() => navigate('/chat?upload=true')}
-            className="flex items-center justify-center gap-2 w-full sm:w-auto px-6 py-3.5 md:px-8 md:py-4 text-base bg-zinc-900 hover:bg-zinc-800 text-white rounded-xl font-semibold border border-border transition-all hover:-translate-y-1"
+            className="flex items-center justify-center gap-2 w-full sm:w-auto px-5 py-2.5 md:px-6 md:py-3.5 text-sm bg-zinc-900 hover:bg-zinc-800 text-white rounded-lg font-semibold border border-border transition-all hover:-translate-y-1"
           >
-            <Upload className="w-5 h-5" /> Upload PDF
+            <Upload className="w-4 h-4" /> Upload PDF
           </button>
         </motion.div>
 
@@ -193,20 +211,28 @@ export default function Landing() {
           className="mt-12 md:mt-16 lg:mt-20 w-full overflow-hidden relative py-2"
         >
           {/* Gradient fade masks at both edges */}
-          <div className="absolute inset-y-0 left-0 w-12 md:w-24 bg-gradient-to-r from-black to-transparent pointer-events-none z-10" />
-          <div className="absolute inset-y-0 right-0 w-12 md:w-24 bg-gradient-to-l from-black to-transparent pointer-events-none z-10" />
+          {!isDesktop && (
+            <>
+              <div className="absolute inset-y-0 left-0 w-12 md:w-24 bg-gradient-to-r from-black to-transparent pointer-events-none z-10" />
+              <div className="absolute inset-y-0 right-0 w-12 md:w-24 bg-gradient-to-l from-black to-transparent pointer-events-none z-10" />
+            </>
+          )}
 
           <div
             ref={scrollRef}
-            onMouseDown={handleMouseDown}
-            onMouseLeave={handleMouseLeave}
-            onMouseUp={handleMouseUp}
-            onMouseMove={handleMouseMove}
-            onTouchStart={handleTouchStart}
-            onTouchEnd={handleTouchEnd}
-            className="flex gap-4 md:gap-6 overflow-x-auto scrollbar-none cursor-grab select-none py-1"
+            onMouseDown={isDesktop ? undefined : handleMouseDown}
+            onMouseLeave={isDesktop ? undefined : handleMouseLeave}
+            onMouseUp={isDesktop ? undefined : handleMouseUp}
+            onMouseMove={isDesktop ? undefined : handleMouseMove}
+            onTouchStart={isDesktop ? undefined : handleTouchStart}
+            onTouchEnd={isDesktop ? undefined : handleTouchEnd}
+            className={`flex gap-4 md:gap-6 py-1 ${
+              isDesktop 
+                ? 'justify-center overflow-x-hidden cursor-default' 
+                : 'overflow-x-auto scrollbar-none cursor-grab select-none'
+            }`}
           >
-            {[...features, ...features].map((f, i) => (
+            {(isDesktop ? features : [...features, ...features]).map((f, i) => (
               <div
                 key={i}
                 className={`flex-shrink-0 w-[255px] md:w-[280px] bg-card/45 backdrop-blur-md border border-border/80 rounded-xl p-5 text-left transition-all duration-300 cursor-default select-none ${f.hoverClass}`}
