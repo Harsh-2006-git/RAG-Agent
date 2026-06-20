@@ -34,18 +34,12 @@
 
 ## 🌟 Features
 
-* **📤 Isolated Client Sessions**:
-*  Browser/Client ID header mapping guarantees that files and chat histories remain strictly separated between different users.
-* **🧠 Advanced Chunking & Embedding**:
-*  Employs LangChain's semantic chunk splitters (`chunk_size=800`, `overlap=100`) and stores dense vector representations in a persistent ChromaDB instance.
-* **💬 Session-Based Persistent Chat**:
-*  Create, rename, view, or delete multiple chat histories backed by a local SQLite database (via SQLAlchemy ORM).
-* **📊 RAG Analytics Panel**:
-*  Visually inspect the RAG engine metrics including execution times, similarity scores, underlying queries, and the exact formatted prompt templates sent to the LLM.
-* **🔍 Source Citations**:
-*  Instantly highlights referenced passages showing page numbers and the matching context snippets in responsive source cards.
-* **✨ Premium Responsive UI**:
-*  Built with a sleek dark-themed workspace, smooth desktop layouts, glassmorphism elements, and fully responsive mobile views.
+* **📤 Isolated Client Sessions**: Browser/Client ID header mapping guarantees that files and chat histories remain strictly separated between different users.
+* **🧠 Advanced Chunking & Embedding**: Employs LangChain's semantic chunk splitters (`chunk_size=800`, `overlap=100`) and stores dense vector representations in a persistent ChromaDB instance.
+* **💬 Session-Based Persistent Chat**: Create, rename, view, or delete multiple chat histories backed by a local SQLite database (via SQLAlchemy ORM).
+* **📊 RAG Analytics Panel**: Visually inspect the RAG engine metrics including execution times, similarity scores, underlying queries, and the exact formatted prompt templates sent to the LLM.
+* **🔍 Source Citations**: Instantly highlights referenced passages showing page numbers and the matching context snippets in responsive source cards.
+* **✨ Premium Responsive UI**: Built with a sleek dark-themed workspace, smooth desktop layouts, glassmorphism elements, and fully responsive mobile views.
 
 ---
 
